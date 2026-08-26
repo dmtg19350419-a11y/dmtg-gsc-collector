@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "sourceRepository": "codeup/quote-workbench",
-  "sourceCommit": "67ce6378cb6f8c986a608b9ef825f3920fe961e0",
+  "sourceCommit": "9d12b76e958e1ef17bc73ba688ce019e381e1173",
   "files": {
     ".github/workflows/manual-readonly.yml": "9294cfa5e3eda5aafcb71f10c5e73fd6fc74c6f8b10034dd294a0d58cfb10b4f",
     ".github/workflows/pr-verification.yml": "e92b93a81b704ba6b5f507e0ec491d471d14fd49b8c1c49563b48da2ca57f33c",
