@@ -1,0 +1,15 @@
+{
+  "name": "dmtg-gsc-collector",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "license": "UNLICENSED",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "check:bundle": "node scripts/bundle-integrity.js",
+    "check:workflows": "node scripts/validate-workflows.js .github/workflows",
+    "test": "node test/collector.test.js"
+  }
+}
