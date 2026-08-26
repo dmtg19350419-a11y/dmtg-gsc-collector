@@ -1,0 +1,80 @@
+name: Scheduled GSC collection
+
+on:
+  schedule:
+    - cron: '5 22 * * *'
+
+permissions:
+  contents: read
+
+jobs:
+  collect:
+    if: github.event_name == 'schedule' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    environment: production-gsc
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+      - name: Collect final Search Console data
+        env:
+          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          GOOGLE_REFRESH_TOKEN: ${{ secrets.GOOGLE_REFRESH_TOKEN }}
+          INGEST_HMAC_SECRET: ${{ secrets.INGEST_HMAC_SECRET }}
+          GSC_SITE_URL: sc-domain:dalianmachine.com
+          GOOGLE_OAUTH_SCOPE: https://www.googleapis.com/auth/webmasters.readonly
+          INGEST_URL: https://www.dalianmachine.com/api/internal/dmtg/search-metrics/google
+          DMTG_GSC_COLLECTOR_RUNTIME: github_actions
+        run: node src/github.js scheduled
+
+  evidence:
+    needs: collect
+    if: github.event_name == 'schedule' && github.ref == 'refs/heads/main' && needs.collect.result == 'success'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+      - name: Commit one secret-free evidence record per ISO week
+        shell: bash
+        env:
+          EVIDENCE_GITHUB_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          evidence_script="${RUNNER_TEMP}/write-automation-evidence.js"
+          cp scripts/write-automation-evidence.js "${evidence_script}"
+          source_commit="$(node -p "JSON.parse(require('fs').readFileSync('manifest.json','utf8')).sourceCommit")"
+          if git fetch origin automation-evidence:refs/remotes/origin/automation-evidence; then
+            git switch --detach refs/remotes/origin/automation-evidence
+          else
+            git switch --orphan automation-evidence
+            git rm -rf .
+          fi
+          node "${evidence_script}" \
+            --output="${GITHUB_WORKSPACE}/evidence" \
+            --completed-at="$(date -u +%Y-%m-%dT%H:%M:%S.000Z)" \
+            --github-sha="${EVIDENCE_GITHUB_SHA}" \
+            --source-commit="${source_commit}" \
+            --status=completed
+          git add evidence
+          if git diff --cached --quiet; then
+            exit 0
+          fi
+          git config user.name "dmtg-gsc-automation"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "chore: record weekly collector evidence"
+          git push origin HEAD:refs/heads/automation-evidence
