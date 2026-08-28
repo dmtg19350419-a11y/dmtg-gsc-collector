@@ -2,14 +2,15 @@ name: Scheduled GSC collection
 
 on:
   schedule:
-    - cron: '5 22 * * *'
+    - cron: '17 22 * * *'
+    - cron: '47 6 * * *'
 
 permissions:
   contents: read
 
 jobs:
   collect:
-    if: github.event_name == 'schedule' && github.ref == 'refs/heads/main'
+    if: github.event_name == 'schedule' && github.ref == 'refs/heads/main' && github.run_attempt == 1 && (github.event.schedule == '17 22 * * *' || github.event.schedule == '47 6 * * *')
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     environment: production-gsc
@@ -32,11 +33,12 @@ jobs:
           GOOGLE_OAUTH_SCOPE: https://www.googleapis.com/auth/webmasters.readonly
           INGEST_URL: https://www.dalianmachine.com/api/internal/dmtg/search-metrics/google
           DMTG_GSC_COLLECTOR_RUNTIME: github_actions
+          DMTG_GITHUB_SCHEDULE: ${{ github.event.schedule }}
         run: node src/github.js scheduled
 
   evidence:
     needs: collect
-    if: github.event_name == 'schedule' && github.ref == 'refs/heads/main' && needs.collect.result == 'success'
+    if: github.event_name == 'schedule' && github.ref == 'refs/heads/main' && github.run_attempt == 1 && (github.event.schedule == '17 22 * * *' || github.event.schedule == '47 6 * * *') && needs.collect.result == 'success'
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     permissions:
