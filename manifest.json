@@ -1,20 +1,20 @@
 {
   "schemaVersion": 1,
   "sourceRepository": "codeup/quote-workbench",
-  "sourceCommit": "9d12b76e958e1ef17bc73ba688ce019e381e1173",
+  "sourceCommit": "75dba5b343b4d7846c7b7d6aa83653499980c6fb",
   "files": {
     ".github/workflows/manual-readonly.yml": "9294cfa5e3eda5aafcb71f10c5e73fd6fc74c6f8b10034dd294a0d58cfb10b4f",
     ".github/workflows/pr-verification.yml": "e92b93a81b704ba6b5f507e0ec491d471d14fd49b8c1c49563b48da2ca57f33c",
-    ".github/workflows/scheduled-collection.yml": "5fcf7f29c50f959d34afdd9d98bb460672378c5aa3dca465131e9139c4eb095c",
+    ".github/workflows/scheduled-collection.yml": "5408fd4cf086b4e6ee8a3b294570157c18bdcc887062d7afb9f4f6a542b5323b",
     "NOTICE": "73ac4a60594d34b15a22355d57e71a8835b49110a4500569d4275a12885b95a7",
     "package.json": "15b64bcf44175d765ab705f7f2533908f0219d31790163fd25c4a73eb756235d",
-    "README.md": "4b04a5943071d7500f757cd9676963c0e4f79fc9e4fc705b27931da1178720d1",
+    "README.md": "909f834e0494840a36becc96982440611b958a20499bae9a6a2ce429ba802fda",
     "scripts/bundle-integrity.js": "4b156bfd366b422687cff9b912396bca00e510ce84b0f42e4bf4f30e88d530fb",
-    "scripts/validate-workflows.js": "47d2ec30db06fe149f6e6fb4d618eb97a9c80ec57d8f2d2d5c70f8cf821e7d70",
+    "scripts/validate-workflows.js": "258a9ab4f342b1a55ec2f8f46ff3ca04af37c453e4d803181606dd0ef7571894",
     "scripts/write-automation-evidence.js": "e572e18b78397d93bbb04e8755332af8bde7cf3c895cdab687c1b3e0b049adc3",
     "SECURITY.md": "af44c91d4046e87c959a0276d03833025f6c9deaa72b8e58084c34d9f04b6652",
-    "src/core.js": "2fbb6f85f1794b3332bf038cf168602e41d2589686e4093b4550c31d093f465b",
-    "src/github.js": "80eb9a43b31097780238dc10e1cf1c72a030895dae3de95b87120818a1d82c20",
-    "test/collector.test.js": "fa7a69303c728ba194affba2da91561ea969fc98c405ac02596478e79e9bf217"
+    "src/core.js": "c8c93f5e05f733d70cac978439f1d33fe2ccf0d9e8fc94f78a142de82e258636",
+    "src/github.js": "514cb78c0cbfd48fa256f7d55e97c3a843ebcf0fe303d2dee5890a1e6a101e85",
+    "test/collector.test.js": "efa22c0b3f3f2edc8232ac0c3689a2a130a1ab0012a2a27325e072ba58227f4f"
   }
 }

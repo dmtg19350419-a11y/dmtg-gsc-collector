@@ -6,6 +6,7 @@ const CHECKOUT_SHA = "11bd71901bbe5b1630ceea73d27597364c9af683";
 const SETUP_NODE_SHA = "49933ea5288caeca8642d1e84afbd3f7d6820020";
 const REQUIRED_FILES = Object.freeze(["manual-readonly.yml", "pr-verification.yml", "scheduled-collection.yml"]);
 const REQUIRED_CHECKS = Object.freeze(["bundle-integrity", "collector-tests", "workflow-policy"]);
+const ALLOWED_SCHEDULES = Object.freeze(["17 22 * * *", "47 6 * * *"]);
 
 function policyError(code) {
   const error = new Error(code);
@@ -105,8 +106,12 @@ export function validateWorkflowDirectory(directory) {
   const scheduled = contents["scheduled-collection.yml"];
   const collect = jobBlock(scheduled, "collect", "evidence");
   const evidence = jobBlock(scheduled, "evidence");
-  if (!scheduled.includes("cron: '5 22 * * *'") || /workflow_dispatch:\s*\n/.test(scheduled)
+  const schedules = [...scheduled.matchAll(/cron:\s*'([^']+)'/g)].map((match) => match[1]);
+  const guardedJobs = [collect, evidence].every((block) => block.includes("github.run_attempt == 1")
+    && ALLOWED_SCHEDULES.every((schedule) => block.includes(`github.event.schedule == '${schedule}'`)));
+  if (schedules.join("\n") !== ALLOWED_SCHEDULES.join("\n") || /workflow_dispatch:\s*\n/.test(scheduled)
       || !collect.includes("environment: production-gsc") || !collect.includes("timeout-minutes: 15")
+      || !collect.includes("DMTG_GITHUB_SCHEDULE: ${{ github.event.schedule }}") || !guardedJobs
       || evidence.includes("environment:") || evidence.includes("secrets.") || evidence.includes("INGEST_HMAC_SECRET")
       || !evidence.includes("needs: collect")) throw policyError("WORKFLOW_POLICY_SCHEDULE_INVALID");
   if (!collect.includes("permissions:\n      contents: read") || collect.includes("contents: write")

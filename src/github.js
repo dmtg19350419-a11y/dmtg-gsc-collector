@@ -1,7 +1,9 @@
 import { collectAndUpload, readOnlySmoke } from "./core.js";
 
-const CRON_HOUR_UTC = 22;
-const CRON_MINUTE_UTC = 5;
+const ALLOWED_DAILY_SCHEDULES = new Map([
+  ["17 22 * * *", { hour: 22, minute: 17 }],
+  ["47 6 * * *", { hour: 6, minute: 47 }],
+]);
 const MAXIMUM_SCHEDULE_DELAY_MS = 6 * 60 * 60 * 1000;
 const INTERNAL_GLOBAL_TIMEOUT_MS = 14 * 60 * 1000 + 30 * 1000;
 
@@ -17,14 +19,16 @@ function exactDate(value) {
   return date;
 }
 
-export function deriveScheduledAt(now = new Date()) {
+export function deriveScheduledAt(schedule, now = new Date()) {
+  const slot = ALLOWED_DAILY_SCHEDULES.get(String(schedule || ""));
+  if (!slot) throw githubError("GITHUB_SCHEDULE_CONTEXT_INVALID");
   const observed = exactDate(now);
   let candidate = new Date(Date.UTC(
     observed.getUTCFullYear(),
     observed.getUTCMonth(),
     observed.getUTCDate(),
-    CRON_HOUR_UTC,
-    CRON_MINUTE_UTC,
+    slot.hour,
+    slot.minute,
     0,
     0,
   ));
@@ -75,8 +79,11 @@ export async function runScheduledCollection(env = {}, options = {}) {
   const eventName = String(options.githubEventName || process.env.GITHUB_EVENT_NAME || "");
   const githubRef = String(options.githubRef || process.env.GITHUB_REF || "");
   if (eventName !== "schedule" || githubRef !== "refs/heads/main") throw githubError("GITHUB_SCHEDULE_CONTEXT_INVALID");
+  const runAttempt = String(options.githubRunAttempt || process.env.GITHUB_RUN_ATTEMPT || "");
+  if (runAttempt !== "1") throw githubError("GITHUB_RUN_ATTEMPT_INVALID");
+  const githubSchedule = String(options.githubSchedule || process.env.DMTG_GITHUB_SCHEDULE || "");
   const observed = exactDate(options.now || new Date());
-  const scheduledAt = deriveScheduledAt(observed);
+  const scheduledAt = deriveScheduledAt(githubSchedule, observed);
   const log = typeof options.log === "function" ? options.log : (entry) => console.log(JSON.stringify(entry));
   const summary = await withGlobalTimeout((signal) => collectAndUpload(env, {
     ...options,
@@ -106,6 +113,8 @@ async function main() {
   const options = {
     githubEventName: process.env.GITHUB_EVENT_NAME,
     githubRef: process.env.GITHUB_REF,
+    githubRunAttempt: process.env.GITHUB_RUN_ATTEMPT,
+    githubSchedule: process.env.DMTG_GITHUB_SCHEDULE,
   };
   if (mode === "scheduled") await runScheduledCollection(process.env, options);
   else if (mode === "readonly") await runReadonlySmoke(process.env, options);
@@ -119,6 +128,7 @@ if (import.meta.url === new URL(process.argv[1] || "", "file:").href) {
       "GITHUB_GLOBAL_TIMEOUT",
       "GITHUB_MODE_INVALID",
       "GITHUB_RUNTIME_INVALID",
+      "GITHUB_RUN_ATTEMPT_INVALID",
       "GITHUB_SCHEDULE_CONTEXT_INVALID",
       "GITHUB_SCHEDULE_DELAY_INVALID",
       "GSC_HTTP_4XX",
