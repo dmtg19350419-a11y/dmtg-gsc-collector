@@ -7,8 +7,8 @@ function response(status, payload) {
 }
 
 assert.equal(GOOGLE_SEARCH_CONSOLE_READ_SCOPE, "https://www.googleapis.com/auth/webmasters.readonly");
-assert.equal(deriveScheduledAt(new Date("2026-08-26T01:05:00.000Z")), "2026-08-25T22:05:00.000Z");
-assert.deepEqual(finalDateWindow(new Date("2026-08-25T22:05:00.000Z")), { startDate: "2026-08-19", endDate: "2026-08-22" });
+assert.equal(deriveScheduledAt("17 22 * * *", new Date("2026-08-26T01:17:00.000Z")), "2026-08-25T22:17:00.000Z");
+assert.deepEqual(finalDateWindow(new Date("2026-08-25T22:17:00.000Z")), { startDate: "2026-08-19", endDate: "2026-08-22" });
 
 const responses = [
   response(200, { access_token: "fixture-access-token" }),
