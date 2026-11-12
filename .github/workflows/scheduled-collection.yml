@@ -64,7 +64,7 @@ jobs:
             git switch --detach refs/remotes/origin/automation-evidence
           else
             git switch --orphan automation-evidence
-            git rm -rf .
+            git rm -rf --ignore-unmatch .
           fi
           node "${evidence_script}" \
             --output="${GITHUB_WORKSPACE}/evidence" \
