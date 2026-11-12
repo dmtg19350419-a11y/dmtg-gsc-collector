@@ -114,6 +114,10 @@ export function validateWorkflowDirectory(directory) {
       || !collect.includes("DMTG_GITHUB_SCHEDULE: ${{ github.event.schedule }}") || !guardedJobs
       || evidence.includes("environment:") || evidence.includes("secrets.") || evidence.includes("INGEST_HMAC_SECRET")
       || !evidence.includes("needs: collect")) throw policyError("WORKFLOW_POLICY_SCHEDULE_INVALID");
+  const evidenceCleanups = evidence.match(/^[ \t]*git[ \t]+rm(?:[ \t]+[^\r\n]*)?$/gm) || [];
+  if (evidenceCleanups.length !== 1 || evidenceCleanups[0].trim() !== "git rm -rf --ignore-unmatch .") {
+    throw policyError("WORKFLOW_POLICY_EVIDENCE_CLEANUP_INVALID");
+  }
   if (!collect.includes("permissions:\n      contents: read") || collect.includes("contents: write")
       || !evidence.includes("permissions:\n      contents: write") || evidence.includes("contents: read")) {
     throw policyError("WORKFLOW_POLICY_PERMISSION_INVALID");
